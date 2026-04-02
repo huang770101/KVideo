@@ -14,6 +14,8 @@ import { usePlayerSettings } from './hooks/usePlayerSettings';
 import { useDanmaku } from './hooks/useDanmaku';
 import { useIsIOS, useIsMobile } from '@/lib/hooks/mobile/useDeviceDetection';
 import { useDoubleTap } from '@/lib/hooks/mobile/useDoubleTap';
+import { settingsStore, DEFAULT_SEEK_STEP_SECONDS } from '@/lib/store/settings-store';
+import { premiumModeSettingsStore } from '@/lib/store/premium-mode-settings';
 import './web-fullscreen.css';
 
 type WebFullscreenSize = 'full' | 'large' | 'focused';
@@ -36,6 +38,7 @@ interface DesktopVideoPlayerProps {
   // Danmaku props
   videoTitle?: string;
   episodeName?: string;
+  isPremium?: boolean;
   // Resolution callback
   onResolutionDetected?: (info: import('./hooks/useVideoResolution').VideoResolutionInfo) => void;
 }
@@ -53,12 +56,14 @@ export function DesktopVideoPlayer({
   isReversed = false,
   videoTitle = '',
   episodeName = '',
+  isPremium = false,
   onResolutionDetected,
 }: DesktopVideoPlayerProps) {
   const { refs, data, actions } = useDesktopPlayerState();
   const { fullscreenType: settingsFullscreenType } = usePlayerSettings();
   const isIOS = useIsIOS();
   const isMobile = useIsMobile();
+  const [seekStepSeconds, setSeekStepSeconds] = React.useState(DEFAULT_SEEK_STEP_SECONDS);
   const [webFullscreenSize, setWebFullscreenSize] = React.useState<WebFullscreenSize>(() => {
     if (typeof window === 'undefined') return 'full';
     const saved = localStorage.getItem(WEB_FULLSCREEN_SIZE_KEY);
@@ -117,6 +122,18 @@ export function DesktopVideoPlayer({
   React.useEffect(() => {
     localStorage.setItem(WEB_FULLSCREEN_SIZE_KEY, webFullscreenSize);
   }, [webFullscreenSize]);
+
+  React.useEffect(() => {
+    const store = isPremium ? premiumModeSettingsStore : settingsStore;
+
+    const syncSeekStep = () => {
+      setSeekStepSeconds(store.getSettings().seekStepSeconds ?? DEFAULT_SEEK_STEP_SECONDS);
+    };
+
+    syncSeekStep();
+    const unsubscribe = store.subscribe(syncSeekStep);
+    return () => unsubscribe();
+  }, [isPremium]);
 
   React.useEffect(() => {
     if (!data.isFullscreen) {
@@ -179,7 +196,8 @@ export function DesktopVideoPlayer({
     data,
     actions,
     fullscreenType,
-    isForceLandscape: shouldForceLandscape
+    isForceLandscape: shouldForceLandscape,
+    seekStepSeconds,
   });
 
   // Auto-skip intro/outro and auto-next episode
@@ -335,6 +353,7 @@ export function DesktopVideoPlayer({
               }, 800); // Increased timeout for better stability
             }}
             onCopyLink={logic.handleCopyLink}
+            seekStepSeconds={seekStepSeconds}
             // Speed Menu Props
             playbackRate={data.playbackRate}
             showSpeedMenu={data.showSpeedMenu}

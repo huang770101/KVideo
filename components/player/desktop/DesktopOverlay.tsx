@@ -28,6 +28,7 @@ interface DesktopOverlayProps {
     onMoreMenuMouseEnter: () => void;
     onMoreMenuMouseLeave: () => void;
     onCopyLink: (type?: 'original' | 'proxy') => void;
+    seekStepSeconds: number;
     // Speed Menu Props
     playbackRate: number;
     showSpeedMenu: boolean;
@@ -66,6 +67,7 @@ export function DesktopOverlay({
     onMoreMenuMouseEnter,
     onMoreMenuMouseLeave,
     onCopyLink,
+    seekStepSeconds,
     playbackRate,
     showSpeedMenu,
     speeds,
@@ -176,7 +178,7 @@ export function DesktopOverlay({
                         onSkipBackward();
                     }}
                     className="group flex items-center justify-center w-10 h-10 md:w-16 md:h-16 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
-                    aria-label="后退 10 秒"
+                    aria-label={`后退 ${seekStepSeconds} 秒`}
                 >
                     <Icons.SkipBack className="w-5 h-5 md:w-8 md:h-8 text-white/80 group-hover:text-white" />
                 </button>
@@ -194,7 +196,7 @@ export function DesktopOverlay({
                         onSkipForward();
                     }}
                     className="group flex items-center justify-center w-10 h-10 md:w-16 md:h-16 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
-                    aria-label="前进 10 秒"
+                    aria-label={`前进 ${seekStepSeconds} 秒`}
                 >
                     <Icons.FastForward className="w-5 h-5 md:w-8 md:h-8 text-white/80 group-hover:text-white" />
                 </button>
